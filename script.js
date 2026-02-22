@@ -55,60 +55,97 @@ if (winner) {
 
 function Gameboard() {
     const board = [];
-    for(let i=0; i < 3; i++) {
-        board[i] = [];
-        for(let j=0; j < 3; j++) {
-            board[i].push(Cell());
-        }
+    // for(let i=0; i < 3; i++) {
+    //     board[i] = [];
+    //     for(let j=0; j < 3; j++) {
+    //         board[i].push(Cell());
+    //     }
+    // }
+    for(let i=0; i < 9; i++) {
+      board[i].push(Cell());    
     }
 
     const getBoard = () => board;
 
-    const play = (symbol, row, column) => {
-      if (row >= 0 && row < 3 && column >= 0 && column < 3)
-        board[row][column].setSymbol(symbol);
-      // if (boardFull()) resetBoard(); // not need yet, first implement winner function properly in the gameController
+    // const play = (symbol, row, column) => {
+    const play = (symbol, index) => {
+      // if (row >= 0 && row < 3 && column >= 0 && column < 3)
+      if (row >= 0 && row < 9)
+        board[index].setSymbol(symbol);
     }
 
     const resetBoard = () => {
-        const emptyBoard = board.map((row) => row.map((cell) => cell.reset()));
+        // const emptyBoard = board.map((row) => row.map((cell) => cell.reset()));
+        const emptyBoard = board.map(cell => cell.reset());
         console.log(emptyBoard);
     }
 
     const printBoard = () => {
-        const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()));
+        // const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()));
+        const boardWithCellValues = board.map(cell => cell.getValue());
         console.log(boardWithCellValues);
     };
 
+    /*
+    board = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8]
+    ]
+    */
+    const winningCombinations = [
+      [0, 1, 2], // Top row
+      [3, 4, 5], // Middle row
+      [6, 7, 8], // Bottom row
+      [0, 3, 6], // Left column
+      [1, 4, 7], // Middle column
+      [2, 5, 8], // Right column
+      [0, 4, 8], // Left-to-right diagonal
+      [2, 4, 6]  // Right-to-left diagonal
+    ];
+
     const checkWinner = () => {
-      const b = board.map(row => row.map(cell => cell.getValue()));
-      for (let i = 0; i < 3; i++) {
-        if (b[i][i] && (
-          (b[i][0] === b[i][1] && b[i][1] === b[i][2]) || // Row Check
-          (b[0][i] === b[1][i] && b[1][i] === b[2][i]) // Column Check
-        )) return b[i][i]; 
+      // const b = board.map(row => row.map(cell => cell.getValue()));
+      // for (let i = 0; i < 3; i++) {
+      //   if (b[i][i] && (
+      //     (b[i][0] === b[i][1] && b[i][1] === b[i][2]) || // Row Check
+      //     (b[0][i] === b[1][i] && b[1][i] === b[2][i]) // Column Check
+      //   )) return b[i][i]; 
+      // }
+      // // diagonals
+      // if (b[1][1] && (
+      //   (b[0][0] === b[1][1] && b[1][1] === b[2][2]) ||
+      //   (b[0][2] === b[1][1] && b[1][1] === b[2][0])
+      // )) return b[1][1];
+      const temp = board.map(cell => cell.getValue());
+      for (const combination of winningCombinations) {
+        const [a, b, c] = combination;
+        if (temp[a] && temp[a] === temp[b] && temp[a] === temp[c]) {
+          return temp[a]; // Return the winning player's symbol
+        }
       }
-      // diagonals
-      if (b[1][1] && (
-        (b[0][0] === b[1][1] && b[1][1] === b[2][2]) ||
-        (b[0][2] === b[1][1] && b[1][1] === b[2][0])
-      )) return b[1][1];
       if(boardFull()) return "tie";
       return "none";
     };
 
     const boardFull = () => {
       let status = true;
-      board.forEach((row) => row.forEach(cell => {
+      // board.forEach((row) => row.forEach(cell => {
+      //   if(!cell.getValue() && status)
+      //     status = false;
+      // }));
+      board.forEach(cell => {
         if(!cell.getValue() && status)
           status = false;
-      }));
+      });
       return status;
     }
 
-    const validate = (row, column) => {
-        return board[row][column].getValue() ? false : true; 
-        // if empty then return true (means cell is available for use) and vice versa
+    const validate = (index) => {
+      if(index >= 0 && index < 9)
+        return board[index].getValue() ? false : true; 
+      // if empty then return true (means cell is available for use) and vice versa
+      return false;
     }
 
     return {getBoard, play, resetBoard, printBoard, checkWinner, validate};
@@ -152,16 +189,17 @@ function GameController(playerOne, playerTwo) {
   };
 
   const valid = (cell) => {
-    const row = indexes[cell].row;
-    const column = indexes[cell].column;
-    return board.validate(row, column);
+    // const row = indexes[cell].row;
+    // const column = indexes[cell].column;
+    // return board.validate(row, column);
+    return board.validate(cell);
   }
 
-  const indexes = [null,];
-  for(let i=0; i<3; i++) {
-    for(let j=0; j<3; j++) 
-      indexes.push({row: i, column: j});
-  }
+  // const indexes = [null,];
+  // for(let i=0; i<3; i++) {
+  //   for(let j=0; j<3; j++) 
+  //     indexes.push({row: i, column: j});
+  // }
 
   const gameOver = () => {
     if (board.checkWinner() === "none") return;
@@ -171,14 +209,14 @@ function GameController(playerOne, playerTwo) {
   }
 
   const playRound = (cell) => {
-    if (cell < 1 || cell > 9) return;
     console.log("Valid", valid(cell))
     if(valid(cell)) {
-      const row = indexes[cell].row;
-      const column = indexes[cell].column;
+      // const row = indexes[cell].row;
+      // const column = indexes[cell].column;
       const token = getActivePlayer().token;
       
-      board.play(token, row, column);
+      // board.play(token, row, column);
+      board.play(token, cell);
       gameOver();
       switchPlayerTurn();
       printNewRound();
@@ -186,7 +224,7 @@ function GameController(playerOne, playerTwo) {
   };
   
   const restartGame = () => {
-    console.log("Winner: ", board.checkWinner());
+    // console.log("Winner: ", board.checkWinner()); // put it in seperate winCheck function
     // can use winner boolean variable to update screen automatically if winner is finalized
     board.resetBoard();
   }
