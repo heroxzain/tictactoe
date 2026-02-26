@@ -5,85 +5,27 @@ ADD AI:
   Medium: Alpha Beta Pruning
   Hard: Custom Moves with a single way to win
   Impossible: MinMax Algorithm
-
-MOVE TO SINGLE ARRAY BOARD:
-//
-// * Checks the tic-tac-toe board for a winner.
-// * @param {string[]} board The current state of the 3x3 board as a flat array.
-// * @returns {string|null} The winning player's symbol ('X' or 'O'), or null if no winner.
-//
-function checkWinner(board) {
-  // Define all 8 possible winning lines (rows, columns, diagonals)
-  const winningCombinations = [
-    [0, 1, 2], // Top row
-    [3, 4, 5], // Middle row
-    [6, 7, 8], // Bottom row
-    [0, 3, 6], // Left column
-    [1, 4, 7], // Middle column
-    [2, 5, 8], // Right column
-    [0, 4, 8], // Left-to-right diagonal
-    [2, 4, 6]  // Right-to-left diagonal
-  ];
-  // Iterate over each winning combination
-  for (const combination of winningCombinations) {
-    const [a, b, c] = combination;
-    // Check if the board cells at the winning indices are all the same
-    // and not empty (e.g., null, undefined, or empty string)
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a]; // Return the winning player's symbol
-    }
-  }
-  return null; // No winner found
-}
-const gameBoard = ['X', 'O', 'X', 
-                   'O', 'X', 'O', 
-                   'X', 'O', 'X']; // Example board state (X wins diagonally)
-
-const winner = checkWinner(gameBoard);
-if (winner) {
-  console.log(`Player ${winner} has won!`);
-} else {
-  // You can also check for a draw here
-  const isDraw = gameBoard.every(cell => cell !== '');
-  if (isDraw) {
-    console.log("It's a draw!");
-  } else {
-    console.log("The game is still in progress.");
-  }
-}
 */
 
 function Gameboard() {
     const board = [];
-    // for(let i=0; i < 3; i++) {
-    //     board[i] = [];
-    //     for(let j=0; j < 3; j++) {
-    //         board[i].push(Cell());
-    //     }
-    // }
     for(let i=0; i < 9; i++) {
-      board[i].push(Cell());    
+      board.push(Cell());    
     }
 
     const getBoard = () => board;
 
-    // const play = (symbol, row, column) => {
     const play = (symbol, index) => {
-      // if (row >= 0 && row < 3 && column >= 0 && column < 3)
-      if (row >= 0 && row < 9)
+      if (index >= 0 && index < 9)
         board[index].setSymbol(symbol);
     }
 
     const resetBoard = () => {
-        // const emptyBoard = board.map((row) => row.map((cell) => cell.reset()));
-        const emptyBoard = board.map(cell => cell.reset());
-        console.log(emptyBoard);
+      board.map(cell => cell.reset());
     }
 
     const printBoard = () => {
-        // const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()));
-        const boardWithCellValues = board.map(cell => cell.getValue());
-        console.log(boardWithCellValues);
+        return board.map(cell => cell.getValue());
     };
 
     /*
@@ -105,18 +47,6 @@ function Gameboard() {
     ];
 
     const checkWinner = () => {
-      // const b = board.map(row => row.map(cell => cell.getValue()));
-      // for (let i = 0; i < 3; i++) {
-      //   if (b[i][i] && (
-      //     (b[i][0] === b[i][1] && b[i][1] === b[i][2]) || // Row Check
-      //     (b[0][i] === b[1][i] && b[1][i] === b[2][i]) // Column Check
-      //   )) return b[i][i]; 
-      // }
-      // // diagonals
-      // if (b[1][1] && (
-      //   (b[0][0] === b[1][1] && b[1][1] === b[2][2]) ||
-      //   (b[0][2] === b[1][1] && b[1][1] === b[2][0])
-      // )) return b[1][1];
       const temp = board.map(cell => cell.getValue());
       for (const combination of winningCombinations) {
         const [a, b, c] = combination;
@@ -130,10 +60,6 @@ function Gameboard() {
 
     const boardFull = () => {
       let status = true;
-      // board.forEach((row) => row.forEach(cell => {
-      //   if(!cell.getValue() && status)
-      //     status = false;
-      // }));
       board.forEach(cell => {
         if(!cell.getValue() && status)
           status = false;
@@ -164,6 +90,7 @@ function Cell() {
 
 function GameController(playerOne, playerTwo) {
   const board = Gameboard();
+  let winner = "";
 
   const players = [
     {
@@ -185,59 +112,49 @@ function GameController(playerOne, playerTwo) {
 
   const printNewRound = () => {
     board.printBoard();
-    console.log(`${getActivePlayer().name}'s turn. (${getActivePlayer().token})`);
   };
 
   const valid = (cell) => {
-    // const row = indexes[cell].row;
-    // const column = indexes[cell].column;
-    // return board.validate(row, column);
     return board.validate(cell);
   }
 
-  // const indexes = [null,];
-  // for(let i=0; i<3; i++) {
-  //   for(let j=0; j<3; j++) 
-  //     indexes.push({row: i, column: j});
-  // }
-
   const gameOver = () => {
-    if (board.checkWinner() === "none") return;
-    else restartGame();
-    // update else condition to true the winner variable
-    // can return true and false to update UI
+    let gameState = board.checkWinner();
+    if (gameState === "none") {
+      winner = "";
+      return false;
+    }
+    else {
+      if (gameState === "tie") winner = "Tie";
+      else if (gameState === "X") winner = "X";
+      else if (gameState === "O") winner = "O";
+      restartGame();
+      return true;
+    }
   }
 
   const playRound = (cell) => {
-    console.log("Valid", valid(cell))
     if(valid(cell)) {
-      // const row = indexes[cell].row;
-      // const column = indexes[cell].column;
       const token = getActivePlayer().token;
-      
-      // board.play(token, row, column);
       board.play(token, cell);
-      gameOver();
       switchPlayerTurn();
       printNewRound();
+      return board.printBoard();
     }
   };
   
   const restartGame = () => {
-    // console.log("Winner: ", board.checkWinner()); // put it in seperate winCheck function
-    // can use winner boolean variable to update screen automatically if winner is finalized
     board.resetBoard();
   }
 
-    // let gameState = board.checkWinner();
-    // if (gameState === "tie") 
-    // else if (gameState === "X")
-    // else if (gameState === "O") 
+  const getWinner = () => {return winner};
 
   return {
     playRound,
     getActivePlayer,
-    restartGame
+    restartGame,
+    getWinner,
+    gameOver
   };
 }
 
@@ -259,17 +176,69 @@ let playerOne = players();
 let playerTwo = players();
 const game = GameController(playerOne, playerTwo);
 
-playerOne.setName("Zain");
-playerOne.setToken("X");
-playerTwo.setName("Mataiba");
-playerTwo.setToken("O");
+// playerOne.setName("Zain");
+// playerOne.setToken("X");
+// playerTwo.setName("Mataiba");
+// playerTwo.setToken("O");
 
-for(let i=0; i<9; i++) 
-  game.playRound(i);
+function setTheme() {
+    let root = document.documentElement;
+    root.className = ((root.className === "dark") ? "light" : "dark");
+}
+document.querySelector(".theme").addEventListener("click", setTheme);
 
-/*
-Dom manipulation is simple: 
-  Add div or button on 3x3 grid on click it 
-  will take id and playRound(div.id)
-  and update the UI regularly 
-*/
+let cells = document.querySelectorAll(".cell");
+const display = Display();
+cells.forEach(cell => {
+  cell.addEventListener("click", (e) => {
+    let result = game.playRound(e.target.id);
+    display.updateDisplay(result);
+  });
+});
+
+let restart_btn = document.querySelector(".restart");
+restart_btn.addEventListener("click", () => {
+  game.restartGame();
+  display.restartDisplay();
+
+});
+
+function Display() {
+  let playerName = document.querySelector(".player-name");
+  let playerSymbol = document.querySelector(".player-symbol");
+  let result = document.querySelector(".result");
+
+  let updateDisplay = (result) => {
+    resetStyles();
+    cells.forEach((cell, index) => {
+      cell.textContent = result[index];
+    });
+    updateHeader();
+    if(game.gameOver())
+      updateWinner();
+  }
+
+  let restartDisplay = () => {
+    cells.forEach((cell, index) => {
+      cell.textContent = "";
+    })
+    resetStyles();
+  }
+
+  let updateHeader = () => {
+    playerName.textContent = game.getActivePlayer().name;
+    playerSymbol.textContent = game.getActivePlayer().token;
+  }
+
+  let updateWinner = () => {
+    result.textContent = `Winner is: ${game.getWinner()}`;
+    result.classList.add("winner");
+  }
+
+  let resetStyles = () => {
+    result.textContent = "";
+    result.classList.remove("winner");
+  }
+
+  return {updateDisplay, restartDisplay};
+}
